@@ -1,56 +1,65 @@
 # GulpEx
-**Attention: Readme File Refers to Previous Tool "IceBucket" & Needs Critical Update!**
-\
-\
-\
-Konfigurierbarer Gulp Wrapper zur einfachen Einrichtung und Integration der Sass- und JavaScript-Transpiler in neuen Projekten \
+This package provides an easy-to-use and highly configurable wrapper for performing the most common gulp tasks like bundling JavaScript source files and compiling SASS/SCSS to CSS.
+
+Please post bug reports and feature requests here: https://github.com/arminlinzbauer/gulpex/issues
 
 ## INDEX
-1. [KOMPATIBILITÄT](#kompatibilität)
-2. [STANDARD TASKS](#standard-tasks)
-3. [KONFIGURATION](#konfiguration)
-4. [LEGACY STYLES](#legacy-styles)
+1. [INSTALLATION](#installation)
+1. [STANDARD TASKS](#standard-tasks)
+1. [KONFIGURATION](#konfiguration)
+1. [DEFAULTS AND FALLBACKS](#defaults-and-fallbacks)
+1. [FULL GULPFILE EXAMPLE](#full-gulpfile-example)
 
-## KOMPATIBILITÄT
+## INSTALLATION
 
-Wenn noch eine alte Version von Gulp im Projekt (und Global) installiert ist 
-(< Gulp 4.0.0), muss diese erst mit `npm uninstall -g gulp` und im Projektverzeichnis
- mit `npm uninstall gulp` entfernt werden **(WICHTIG!!!)**.
-Danach muss die neuste Gulp-Version mittels `npm install -g gulp` global 
-installiert werden. Im Projekt mit `npm install -D gulp` ebenfalls die neuste 
-Version installieren **(WICHTIG!!!)**.
+1. If you haven't done so already, install the gulp-cli using an elevated CMD, PowerShell (Windows) or, depending on your preference, an elevated or non-elevated shell and execute the following command: 
+    ```sh
+    npm install -g gulp-cli@latest
+    ```
+1. Install the latest version of this package by executing the following command in your project's directory: 
+    ```sh
+    npm install @arminlinzbauer/gulpex
+    ```
+1. In your project's directory, create a new file named `gulpfile.js` with the following content: 
+    ```node
+    const gulpex = require("@arminlinzbauer/gulpex");
+    gulpex(exports, {
+        // Configuration goes here...
+    });
+    ```
 
 ## STANDARD TASKS
 
-TASK | BESCHREIBUNG
+GulpEx provides you with a couple of pre-defined tasks that can be executed by running the following command in the directory your `gulpfile.js` is in:
+```sh
+gulp <task-name>
+```
+
+TASK-NAME | DESCRIPTION
 -----|-------------
-init	    | Nach Checkout/Update Dateien z.B. an richtige Stelle kopieren, Libraries bundeln
-convert-js  | Development-Javascript Bundle ausspielen inkl. Sourcemaps -> bundle.js
-convert-css | Development-CSS Bundle ausspielen inkl. Sourcemaps -> filename.css
+init	       | Copies configured assets to their corresponding locations
+convert-js  | Generates configured JavaScript bundles for development<sup>1</sup>
+convert-css | Compiles configured SASS/SCSS files for development<sup>1</sup>
 convert     | &rarr; (convert-js + convert-css)
-deploy-js   | Production-Javascript Bundle ausspielen exkl. Sourcemaps -> bundle.min.js
-deploy-css  | Development-CSS Bundle ausspielen exkl. Sourcemaps -> bundle.min.js
+deploy-js   | Generates configured JavaScript bundles for production<sup>2</sup>
+deploy-css  | Compiles configured SASS/SCSS files for production<sup>2</sup>
 deploy      | &rarr; (deploy-js + deploy-css)
-watch       | &rarr; (convert + [recompile on change] + [reload CSS])
+watch       | &rarr; (convert + [recompile on change] + [reload compiled CSS-files in browser])
+
+<sup>1</sup>&nbsp;Source maps **enabled** by default, no compression.\
+<sup>2</sup>&nbsp;Source maps **disabled** by default, minified. Creates `*.min.*` files.\
 
 ## KONFIGURATION
 
-Die "gulpfile.js"-Datei wurde so konzipiert, dass sie nicht verändert werden 
-muss. Zum konfigurieren der Projektstruktur können die Variablen der gulpconfig.js-Datei 
-bearbeitet werden. Genauere erläuterungen zu den Funktionen der einzelnen Variablen sind
-den Kommentaren in der Datei zu entnehmen.
+To modify how GulpEx behaves and to tell GulpEx what JS-Bundles to generate & what SASS/SCSS files to compile, you can add or change the configuration object that is passed as a second parameter to the gulpex-function in your `gulpfile.js`.
 
-Das Bereitstellen von Bundles geschieht in der bundles.json-Datei. Diese setzt sich 
-hauptsächlich aus den folgenden Knotenpunkten zusammen:
+The following nodes are available:
 
- - legacyCss (siehe [LEGACY STYLES](#legacy-styles))
  - bundles
- - styles
  - includePaths
  - assets
  
-**ACHTUNG:** Alle Pfadangaben in der bundles.json-Datei müssen entweder absolut oder 
-relativ zum Projektverzeichnis und mit './' beginnend angegeben werden.
+**Attention:** All paths should be specified either as absolute paths or, in case of paths relative to your project's directory, with a leading `./`.
 
 ### Bundles
 Hier werden im Key-Value-Verfahren mehrere Bundle-Objekte mit eindeutigem Schlüssel
@@ -58,98 +67,108 @@ hinterlegt. Ein einzelnses Bundle-Objekt hat die folgende Struktur:
 
 ```
 key: {
+  
+  type: String,           // The type of bundle. Possible values are 'script'` and `'style'.
+                          // This property must not be omitted.
 
-  name: String,     // Der Name der zu generierenden Bundle-Datei.
+  name: String,           // The name of the bundle (for type = 'script' only).
   
-  path: String,     // Der Ausgabepfad der zu generierenden Bundle-Datei
-                    // Wird nichts angegeben, wird der in der gulpconfig.js
-                    // angegebene Pfad der 'scriptsDir'-Variable verwendet.
+  path: String,           // The output path of the generated file(s).
+                          // If not specified, './html/js' (type = 'script') or 
+                          // './html/css' (type = 'style') will be used.
   
-  files: String[],  // Die Dateien, die zum Bundle zusammengefügt werden sollen
+  files: String[],        // The files that should be compiled / included in the bundle. Can be a glob pattern.
   
-  minify: Boolean,  // Schaltet die Minifizierung der Bundle-Datei ein oder aus
-                    // Die Minifizierung findet in jedem Fall nur beim Deployment statt
-                    // Wird nichts angegeben, wird die Minifizierung automatisch aktiviert
+  minify: Boolean,        // Toggles the minification / uglification.
+                          // (Only for deploy tasks. Minification is always off for development builds.)
+                          // The default is true.
+                    
+  sourcemaps: Boolean     // Toggles source map generation for this bundle on or off.
+                          // (Only for deploy tasks. Source maps are always on for development builds.)
+                          // The default is false.
                      
-  watch: Boolean    // Schaltet den Watcher für das Bundle ein oder aus
-                    // Wird nichts angegeben, wird der Watcher automatisch aktiviert.
+  watch: string[]|Boolean // Toggles the watcher for this bundle on or off. 
+                          // For bundles of type 'style', a list of additional files or glob patterns can
+                          // be specified instead to also watch for changes on thos files without them actually
+                          // being compiled.
 
 }
 ```
 
-Es können beliebig viele Bundles angelegt werden. Stellen Sie nur sicher, dass jedes Bundle 
-einen eindeutigen Key erhält.
+You can specify as many bundles as you want. Just make sure to give each of them a unique key.
 
-### Styles
-Hier werden im Key-Value-Verfahren mehrere Stylesheet-Objekte mit eindeutigem Schlüssel
-hinterlegt. Ein einzelnses Stylesheet-Objekt hat die folgende Struktur:
+Oftentimes, one single , very minimal bundle definition may provide everything you need.
+The following bundle definition compiles all SASS/SCSS files (that don't start with an underscore) 
+within the `./sass` directory and dumps the compiled CSS files into the `./html/css` directory.
 
 ```
-key: {
-  
-  path: String,     // Der Ausgabepfad der zu generierenden CSS-Datei(en)
-                    // Wird nichts angegeben, wird der in der gulpconfig.js
-                    // angegebene Pfad der 'cssDirectory'-Variable verwendet.
-  
-  files: String[],  // Die SCSS- / Sass-Dateien, die mit in CSS-Dateien kompiliert werden sollen
-  
-  minify: Boolean,  // Schaltet die Minifizierung der CSS-Datei(en) ein oder aus
-                    // Die Minifizierung findet in jedem Fall nur beim Deployment statt
-                    // Wird nichts angegeben, wird die Minifizierung automatisch aktiviert
-                     
-  watch: Boolean|String[]
-                    // Eine Liste von Dateien, die, zusätzlich zu den in 'files' angegebenen
-                    // Dateien, vom Watcher beobachtet werden sollen und bei Änderungen das 
-                    // Neu-Kompilieren der CSS-Datei(en) auslösen. Alternativ kann der Watcher
-                    // mit false deaktiviert werden. 
-                    // Wird true oder nichts angegeben, werden nur die unter 'files' angegebenen 
-                    // Dateien beobachtet. Dieses Verhalten macht nur Sinn, wenn unter 'files'
-                    // ein gesamtes Verzeichnis angegeben wird.  
-
+{
+    bundles: {
+        myGlobalStyleBundle: {
+            type: 'style',
+            files: [ "./sass/**/*.s[ca]ss" ]
+        }
+    }
 }
 ```
-
-Es können beliebig viele CSS-Dateien angelegt werden. In den meisten Fällen reicht allerdings
-eine einzige Angabe:
-
-```
-"global": {
-    "files": [ "./sass/**/*.s[ca]ss" ]
-}
-```
-
-Auf diese weise wird die klassische Vorgehensweise aus den Vorgängerversionen des Gulp-Standards
-simuliert.
 
 ### Include Paths
-Hier können in einem String-Array Pfade angegeben werden, diebei der Auflösung der 
-@import-Direktiven der Sass- / SCSS-Dateien berücksichtigt werden sollen. 
+An array of additional include paths used by the node-sass compiler. 
+Check their documentation for more information on this topic.
 
 ### Assets
-Hier können in einem Array Dateien angegeben werden, die während der Initialisierung der Gulp-Tasks 
-an einen bestimmten Ort kopiert werden sollen. Dies eignet sich z.B. um wichtige Assets aus dem node_modules-Ordner 
-ins öffentliche Document Root zu überführen.
+Specifies a list of files that should be copied to a publicly accessible location (e.g. document root).
+Assets can be specified in two ways (both of which support glob patterns):
 
-Es gibt drei Möglichkeiten, diese Dateien innerhalb des Arrays anzugeben (jede dieser Möglichkeiten unterstützt GLOB-Patterns). Die verschiedenen Arten können auch vermischt werden:
+**As a string**\
+Source files will be copied to a pre-defined location within your project's public document root.
+Without further configuration, this location will default to `./html/assets`.
 
-**Als String**\
-Die Quelldatei(en) werden an den in der `gulpconfig.js`-Datei definierten Standard-Pfad `publicAssetsDirectory` kopiert.
+**As an objekt**\
+Source files will be copied from `object.src` to `object.dest`. If `object.dest` is omitted, files will again be copied to the pre-defined asset location.
 
-**Als Array**\
-Die Quelldateien aus `ARR_POS[0]` werden nach `ARR_POS[1]` kopiert. Wird `ARR_POS[1]` nicht gesetzt, wird als Ziel wieder der Standard-Pfad für `publicAssetsDirectory` verwendet.
+## DEFAULTS AND FALLBACKS
+Most of the default / pre-defined paths can be overwritten in your config object.
+The following config properties (with their corresponding default values) can be overwritten:
 
-**Als Objekt**\
-Die Quelldateien aus `Object.src` werden nach `Object.dest` kopiert. Wird `Object.dest` nicht gesetzt, wird als Ziel wieder der Standard-Pfad für `publicAssetsDirectory` verwendet.
+ - `projectRoot` : `'.'`
+ - `documentRoot` : `'./html'`
+ - `assetDirectory` : `'./html/assets'`
+ - `nodeModules` : `'./node_modules'`
+ - `cssDirectory` : `'./html/css'`
+ - `scriptsDir` : `'./html/js'`
 
-## LEGACY STYLES
+## FULL GULPFILE EXAMPLE
+Tying together what we've leared, a possible gulpfile configuration could look something like this:
 
-Neuere Versionen von libSass erlauben keine Imports von .css-Dateien mehr. 
-Deshalb ist es notwendig, dass bei der Projektinitialisierung alle Legacy-
-Styles mit .scss-Extension in den sass-Ordner kopiert werden. Dies passiert
-vollautomatisch beim Initialisieren, vor dem Deployment und beim Starten des 
-Watchers. Alle Legacy-Stylesheets werden automatisch in einer Include-Datei
-importiert. Lediglich die "sass/includes/_libs.scss"-Datei muss noch in ihrer 
-Haupt-SCSS-Datei eingebunden werden.
+```node
+const gulpex = require('@arminlinzbauer/gulpex');
+gulpex(exports, {
+    cssDirectory: './html/css/dist',
+    scriptsDir: './html/js/dist',
+    bundles: {
+        myStyles: {
+            type: 'style',
+            files: [ './scss/**/*.scss' ],
+            sourcemaps: true
+        },
+        myJsLibs: {
+            type: 'script',
+            name: 'libraries.bundle.js',
+            minify: false,
+            sourcemaps: false,
+            files: [
+                './node_modules/jquery/dist/jquery.min.js',
+                './node_modules/bootstrap/dist/js/bootstrap.min.js'
+            ],
+        },
+        myCustomJsScripts: {
+            type: 'script',
+            name: 'scripts.bundle.js',
+            minify: true,
+            files: [ './js/**/*.js' ],
+        }
+    }
+});
 
-Um Legacy-Stylesheets zu integrieren, listen Sie die Pfade zu den CSS-Dateien
-in der bundle.json in einem Array unter dem Knoten `legacyCss` auf.
+```
