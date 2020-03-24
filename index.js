@@ -311,9 +311,14 @@ module.exports = function(exports, config) {
         if (typeof style.watch !== 'object') {
           style.watch = [];
         }
+		
+		if (typeof style.files !== 'object') {
+          style.files = [];
+        }
 
         let watchPaths = style.watch.slice();
-        watchPaths.splice(0, 0, ...style.files);
+        JSON.parse(JSON.stringify(watchPaths))
+			.splice(0, 0, ...JSON.parse(JSON.stringify(style.files)));
 
         gulp.watch(
             watchPaths,
