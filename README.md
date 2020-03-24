@@ -6,7 +6,7 @@ Please post bug reports and feature requests here: https://github.com/arminlinzb
 ## INDEX
 1. [INSTALLATION](#installation)
 1. [STANDARD TASKS](#standard-tasks)
-1. [KONFIGURATION](#konfiguration)
+1. [CONFIGURATION](#configuration)
 1. [DEFAULTS AND FALLBACKS](#defaults-and-fallbacks)
 1. [FULL GULPFILE EXAMPLE](#full-gulpfile-example)
 
@@ -49,7 +49,7 @@ watch       | &rarr; (convert + [recompile on change] + [reload compiled CSS-fil
 <sup>1</sup>&nbsp;Source maps **enabled** by default, no compression.\
 <sup>2</sup>&nbsp;Source maps **disabled** by default, minified. Creates `*.min.*` files.\
 
-## KONFIGURATION
+## CONFIGURATION
 
 To modify how GulpEx behaves and to tell GulpEx what JS-Bundles to generate & what SASS/SCSS files to compile, you can add or change the configuration object that is passed as a second parameter to the gulpex-function in your `gulpfile.js`.
 
