@@ -6,12 +6,11 @@ Please post bug reports and feature requests here: https://github.com/arminlinzb
 ## INDEX
 1. [INSTALLATION](#installation)
 1. [STANDARD TASKS](#standard-tasks)
-1. [KONFIGURATION](#konfiguration)
+1. [CONFIGURATION](#configuration)
 1. [DEFAULTS AND FALLBACKS](#defaults-and-fallbacks)
 1. [FULL GULPFILE EXAMPLE](#full-gulpfile-example)
 
 ## INSTALLATION
-
 1. If you haven't done so already, install the gulp-cli using an elevated CMD, PowerShell (Windows) or, depending on your preference, an elevated or non-elevated shell and execute the following command: 
     ```sh
     npm install -g gulp-cli@latest
@@ -29,7 +28,6 @@ Please post bug reports and feature requests here: https://github.com/arminlinzb
     ```
 
 ## STANDARD TASKS
-
 GulpEx provides you with a couple of pre-defined tasks that can be executed by running the following command in the directory your `gulpfile.js` is in:
 ```sh
 gulp <task-name>
@@ -49,7 +47,7 @@ watch       | &rarr; (convert + [recompile on change] + [reload compiled CSS-fil
 <sup>1</sup>&nbsp;Source maps **enabled** by default, no compression.\
 <sup>2</sup>&nbsp;Source maps **disabled** by default, minified. Creates `*.min.*` files.\
 
-## KONFIGURATION
+## CONFIGURATION
 
 To modify how GulpEx behaves and to tell GulpEx what JS-Bundles to generate & what SASS/SCSS files to compile, you can add or change the configuration object that is passed as a second parameter to the gulpex-function in your `gulpfile.js`.
 
@@ -62,20 +60,20 @@ The following nodes are available:
 **Attention:** All paths should be specified either as absolute paths or, in case of paths relative to your project's directory, with a leading `./`.
 
 ### Bundles
-Hier werden im Key-Value-Verfahren mehrere Bundle-Objekte mit eindeutigem Schlüssel
-hinterlegt. Ein einzelnses Bundle-Objekt hat die folgende Struktur:
+To define bundles, you need to specify a unique key which can contain various properties as key-value-pairs.
+Any single bundle object has the following structure:
 
 ```
-key: {
+uniqueKey: {
   
-  type: String,           // The type of bundle. Possible values are 'script'` and `'style'.
-                          // This property must not be omitted.
+  type: String,           // The type of bundle. Possible values are `'script'` and `'style'`.
+                          // This property is required.
 
-  name: String,           // The name of the bundle (for type = 'script' only).
+  name: String,           // The name of the bundle (required for type `'script'` only).
   
   path: String,           // The output path of the generated file(s).
-                          // If not specified, './html/js' (type = 'script') or 
-                          // './html/css' (type = 'style') will be used.
+                          // If not specified, './html/js' (type = `'script'`) or 
+                          // './html/css' (type = `'style'`) will be used.
   
   files: String[],        // The files that should be compiled / included in the bundle. Can be a glob pattern.
   
@@ -88,14 +86,14 @@ key: {
                           // The default is false.
                      
   watch: string[]|Boolean // Toggles the watcher for this bundle on or off. 
-                          // For bundles of type 'style', a list of additional files or glob patterns can
+                          // For bundles of type `'style'`, a list of additional files or glob patterns can
                           // be specified instead to also watch for changes on thos files without them actually
                           // being compiled.
 
 }
 ```
 
-You can specify as many bundles as you want. Just make sure to give each of them a unique key.
+You can specify as many bundles as you want as long as each of them has a unique key.
 
 Oftentimes, one single , very minimal bundle definition may provide everything you need.
 The following bundle definition compiles all SASS/SCSS files (that don't start with an underscore) 
