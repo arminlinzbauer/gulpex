@@ -40,36 +40,6 @@ module.exports = function(exports, config) {
   const livereload = require('gulp-livereload');
   const gulpif = require('gulp-if');
 
-  const gulpext = function (config, gulp, exp) {
-    try {
-      let includePaths = fs.readdirSync('./gulp/extensions/autoload');
-      includePaths = includePaths.map(v => 'autoload/' + v);
-      config.extensions.splice(0, 0, ...includePaths);
-      console.log(config.extensions);
-    } catch (e) {
-    }
-
-    for (let extensionFile of config.extensions) {
-      // Prepend relative path
-      extensionFile = './extensions/' + extensionFile;
-
-      // Remove .js suffix if applicable
-      if (extensionFile.substr(-3, 3).toLowerCase() === '.js') {
-        extensionFile = extensionFile.substr(0, extensionFile.length - 3);
-      }
-
-      // Load extension
-      try {
-        let extension = require(extensionFile);
-        console.log('[GulpEx] Loading extension: ' + extensionFile);
-        extension.default(exp, gulp);
-      } catch (error) {
-        console.error('[GulpEx] Failed to load extension ' + extensionFile);
-        console.error(error);
-      }
-    }
-  };
-
   const end = function(message) {
     console.log(message);
     this.emit('end');
@@ -369,13 +339,4 @@ module.exports = function(exports, config) {
 // Watcher Tasks
   exports['watch'] = gulp.series(exports['deploy'], watch);
   exports['default'] = exports['watch'];
-
-// Finish Initialisation
-  try {
-    console.log('[GulpEx] Loading optional modules...');
-    gulpext(config, gulp, exports);
-    console.log('[GulpEx] Finished loading optional modules.');
-  } catch (e) {
-    console.warn('[GulpEx] Proceeding without optional modules.');
-  }
 };
