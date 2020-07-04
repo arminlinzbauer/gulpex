@@ -14,6 +14,7 @@
     "taskrunner",
     "scss"
   ],
+  "license": "MIT",
   "author": "Armin Linzbauer",
   "engines": {
     "node": ">=13.7"
