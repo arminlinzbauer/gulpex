@@ -37,7 +37,6 @@ module.exports = function(exports, config) {
   const concat = require('gulp-concat');
   const rename = require('gulp-rename');
   const uglify = require('gulp-uglify-es').default;
-  const livereload = require('gulp-livereload');
   const gulpif = require('gulp-if');
 
   const gulpext = function (config, gulp, exp) {
@@ -261,36 +260,7 @@ module.exports = function(exports, config) {
     };
   }
 
-  function reload(style) {
-    // Define filte rule for distinct items
-    const distinct = (value, index, self) => {
-      return self.indexOf(value) === index;
-    };
-
-    // Proxy style into
-    let styles;
-    if (typeof style === 'object') {
-      styles = [style];
-    } else {
-      styles = Object.values(config.styles);
-    }
-
-    // Build CSS-Paths from Style-Files & Output Path
-    let reloadPaths = styles.map(o => {
-      return (!o.path ?
-          config.cssDirectory :
-          o.path) + '/**/*.css';
-    }).flat().filter(distinct);
-
-    // Return Closure
-    return function() {
-      return gulp.src(reloadPaths).pipe(livereload());
-    };
-  }
-
   function watch() {
-    livereload.listen();
-
     const watcherOpts = {atomic: true, usePolling: true, alwaysStat: true};
 
     // Initialize Stylesheet-Watchers
@@ -318,9 +288,8 @@ module.exports = function(exports, config) {
         gulp.watch(
             watchPaths,
             watcherOpts,
-            gulp.series(
-                buildCss(false, key),
-                reload(style),
+            gulp.parallel(
+                buildCss(false, key)
             ),
         );
       }
