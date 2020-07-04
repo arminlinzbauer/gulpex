@@ -307,5 +307,5 @@ module.exports = function(exports, config) {
 
 // Watcher Tasks
   exports['watch'] = gulp.series(exports['deploy'], watch);
-  exports['default'] = exports['watch'];
+  exports['default'] = exports['deploy'];
 };
