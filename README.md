@@ -47,6 +47,8 @@ watch       | &rarr; (convert + [recompile on change] + [reload compiled CSS-fil
 <sup>1</sup>&nbsp;Source maps **enabled** by default, no compression.\
 <sup>2</sup>&nbsp;Source maps **disabled** by default, minified. Creates `*.min.*` files.\
 
+Running `gulp` without any arguments will trigger the `deploy` task once.
+
 ## CONFIGURATION
 
 To modify how GulpEx behaves and to tell GulpEx what JS-Bundles to generate & what SASS/SCSS files to compile, you can add or change the configuration object that is passed as a second parameter to the gulpex-function in your `gulpfile.js`.
