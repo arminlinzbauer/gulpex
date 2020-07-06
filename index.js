@@ -296,7 +296,7 @@ module.exports = function(exports, config) {
 // Converting Tasks
   exports['convert-js'] = buildJs(false);
   exports['convert-css'] = buildCss(false);
-  exports['convert'] = gulp.parallel(createBundle, exports['convert-css']);
+  exports['convert'] = gulp.parallel(exports['convert-js'], exports['convert-css']);
 
 // Deployment Tasks
   const deployJs = gulp.parallel(exports['convert-js'], buildJs(true));
