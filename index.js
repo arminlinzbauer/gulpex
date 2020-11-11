@@ -187,8 +187,6 @@ module.exports = function(exports, config) {
           on('error', err).
           pipe(gulpif(deploy, postcss([autoprefixer()]))).
           on('error', end).
-          pipe(gulpif(deploy && style.minify, postcss([cssnano()]))).
-          on('error', end).
           pipe(gulpif(deploy && style.minify, rename({suffix: '.min'}))).
           on('error', end).
           pipe(gulpif(!deploy, sourcemap.write('.'))).
