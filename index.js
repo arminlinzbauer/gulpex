@@ -180,14 +180,17 @@ module.exports = function(exports, config) {
           on('error', err).
           pipe(gulpif(!deploy, sourcemap.init())).
           on('error', err).
-          pipe(sass({
+          pipe(gulpif(deploy && style.minify, sass({
+            outputStyle: 'compressed',
+            includePaths: config.includePaths,
+          }))).
+          on('error', err).
+          pipe(gulpif(!deploy || !style.minify, sass({
             outputStyle: 'nested',
             includePaths: config.includePaths,
-          })).
+          }))).
           on('error', err).
           pipe(gulpif(deploy, postcss([autoprefixer()]))).
-          on('error', end).
-          pipe(gulpif(deploy && style.minify, postcss([cssnano()]))).
           on('error', end).
           pipe(gulpif(deploy && style.minify, rename({suffix: '.min'}))).
           on('error', end).
