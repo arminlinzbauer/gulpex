@@ -1,6 +1,6 @@
 {
   "name": "@arminlinzbauer/gulpex",
-  "version": "1.0.1",
+  "version": "1.0.2-beta.0",
   "description": "Extensible Gulp Wrapper for Easy Set-up and Project Integration (SASS + JS)",
   "keywords": [
     "gulp",
@@ -29,7 +29,6 @@
   "main": "index.js",
   "dependencies": {
     "autoprefixer": "^9.8.4",
-    "cssnano": "^4.1.10",
     "gulp": "^4.0.2",
     "gulp-concat": "^2.6.1",
     "gulp-if": "^3.0.0",
