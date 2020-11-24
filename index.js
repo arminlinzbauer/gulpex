@@ -33,7 +33,6 @@ module.exports = function(exports, config) {
   const postcss = require('gulp-postcss');
   const plumber = require('gulp-plumber');
   const autoprefixer = require('autoprefixer');
-  const cssnano = require('cssnano');
   const concat = require('gulp-concat');
   const rename = require('gulp-rename');
   const uglify = require('gulp-uglify-es').default;
