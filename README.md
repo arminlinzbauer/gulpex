@@ -1,4 +1,4 @@
-# GulpEx
+# GulpEx 2
 This package provides an easy-to-use and highly configurable wrapper for performing the most common gulp tasks like bundling JavaScript source files and compiling SASS/SCSS to CSS.
 
 Please post bug reports and feature requests here: https://github.com/arminlinzbauer/gulpex/issues
