@@ -28,7 +28,7 @@ module.exports = function(exports, config) {
 
   const fs = require('fs');
   const gulp = require('gulp');
-  const sass = require('gulp-sass');
+  const sass = require('gulp-dart-sass');
   const sourcemap = require('gulp-sourcemaps');
   const postcss = require('gulp-postcss');
   const plumber = require('gulp-plumber');
