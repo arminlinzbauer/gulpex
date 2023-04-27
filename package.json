@@ -1,6 +1,6 @@
 {
   "name": "@arminlinzbauer/gulpex",
-  "version": "2.0.0-alpha.1",
+  "version": "2.1.0-alpha.1",
   "description": "Extensible Gulp Wrapper for Easy Set-up and Project Integration (SASS + JS)",
   "keywords": [
     "gulp",
@@ -17,7 +17,7 @@
   "license": "MIT",
   "author": "Armin Linzbauer",
   "engines": {
-    "node": ">=14.15.1"
+    "node": ">=18.16.0"
   },
   "repository": {
     "type": "git",
@@ -28,16 +28,15 @@
   },
   "main": "index.js",
   "dependencies": {
-    "autoprefixer": "^9.8.6",
+    "autoprefixer": "^10.4.14",
     "gulp": "^4.0.2",
     "gulp-concat": "^2.6.1",
-    "gulp-dart-sass": "^1.0.2",
+    "gulp-dart-sass": "^1.1.0",
     "gulp-if": "^3.0.0",
-    "gulp-livereload": "^4.0.2",
     "gulp-plumber": "^1.2.1",
-    "gulp-postcss": "^8.0.0",
+    "gulp-postcss": "^9.0.1",
     "gulp-rename": "^2.0.0",
-    "gulp-sourcemaps": "^2.6.5",
+    "gulp-sourcemaps": "^3.0.0",
     "gulp-uglify-es": "^2.0.0"
   }
 }
