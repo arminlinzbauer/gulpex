@@ -1,6 +1,5 @@
 {
   "name": "@arminlinzbauer/gulpex",
-  "version": "2.1.0-alpha.1",
   "description": "Extensible Gulp Wrapper for Easy Set-up and Project Integration (SASS + JS)",
   "keywords": [
     "gulp",
