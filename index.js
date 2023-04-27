@@ -40,7 +40,7 @@ module.exports = function(exports, config) {
 
   const gulpext = function (config, gulp, exp) {
     try {
-      let includePaths = fs.readdirSync('./gulp/extensions/autoload');
+      let includePaths = fs.readdirSync('./.gulp/extensions/autoload');
       includePaths = includePaths.map(v => 'autoload/' + v);
       config.extensions.splice(0, 0, ...includePaths);
       console.log(config.extensions);
@@ -49,7 +49,7 @@ module.exports = function(exports, config) {
 
     for (let extensionFile of config.extensions) {
       // Prepend relative path
-      extensionFile = './extensions/' + extensionFile;
+      extensionFile = './.gulp/extensions/' + extensionFile;
 
       // Remove .js suffix if applicable
       if (extensionFile.substr(-3, 3).toLowerCase() === '.js') {
