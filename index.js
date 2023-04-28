@@ -1,81 +1,37 @@
-const defaults = {
-  projectRoot: '.',
-  documentRoot: './html',
-  assetDirectory: './html/assets',
-  nodeModules: './node_modules',
-  cssDirectory: './html/css',
-  scriptsDir: './html/js',
-  bundles: {},
-  assets: [],
-  includePaths: [],
-};
+const { defaults } = require('./defaults');
+const { annotate } = require('./annotate');
+const { styleFilter, scriptFilter, objectFilter } = require('./filters');
+const { register, lookup, retain, apply } = require('./task-registry');
+const { end, err } = require('./pipe-controls');
+const { findExtensions, loadExtension, guardConfig } = require('./extension-manager');
+const { createPipe, executePipe, defineTask, defineHook, registerPipe, buildHookDefiner } = require('./pipe-builder');
 
-const styleFilter = objects => key => objects[key].type === 'style';
-const scriptFilter = objects => key => objects[key].type === 'script';
-const objectFilter = (objects, typeFilter) => {
-  return Object.keys(objects).
-      filter(typeFilter(objects)).
-      reduce((obj, key) => {
-        obj[key] = JSON.parse(JSON.stringify(objects[key]));
-        return obj;
-      }, {});
-};
+const gulp = require('gulp');
+const sass = require('gulp-dart-sass');
+const sourcemap = require('gulp-sourcemaps');
+const postcss = require('gulp-postcss');
+const plumber = require('gulp-plumber');
+const autoprefixer = require('autoprefixer');
+const concat = require('gulp-concat');
+const rename = require('gulp-rename');
+const uglify = require('gulp-uglify-es').default;
+const gulpif = require('gulp-if');
 
-module.exports = function(exports, config) {
+async function main(exports, config, rootDir) {
+  if (!rootDir) {
+    console.error(
+      "GulpEx Error:\n  "
+      + "Project root directory not specified. Starting from GulpEx version 2.0,\n  "
+      + "`__dirname` must be passed to the `gulpex()` function call as a 3rd argument.\n  "
+      + "Consult your GulpEx version's documentation for more information.\n"
+    );
+    process.exit(1);
+  }
+
   config = Object.assign(defaults, config);
   config.styles = objectFilter(config.bundles, styleFilter);
   config.bundles = objectFilter(config.bundles, scriptFilter);
-
-  const fs = require('fs');
-  const gulp = require('gulp');
-  const sass = require('gulp-dart-sass');
-  const sourcemap = require('gulp-sourcemaps');
-  const postcss = require('gulp-postcss');
-  const plumber = require('gulp-plumber');
-  const autoprefixer = require('autoprefixer');
-  const concat = require('gulp-concat');
-  const rename = require('gulp-rename');
-  const uglify = require('gulp-uglify-es').default;
-  const gulpif = require('gulp-if');
-
-  const gulpext = function (config, gulp, exp) {
-    try {
-      let includePaths = fs.readdirSync('./.gulp/extensions/autoload');
-      includePaths = includePaths.map(v => 'autoload/' + v);
-      config.extensions.splice(0, 0, ...includePaths);
-      console.log(config.extensions);
-    } catch (e) {
-    }
-
-    for (let extensionFile of config.extensions) {
-      // Prepend relative path
-      extensionFile = './.gulp/extensions/' + extensionFile;
-
-      // Remove .js suffix if applicable
-      if (extensionFile.substr(-3, 3).toLowerCase() === '.js') {
-        extensionFile = extensionFile.substr(0, extensionFile.length - 3);
-      }
-
-      // Load extension
-      try {
-        let extension = require(extensionFile);
-        console.log('[GulpEx] Loading extension: ' + extensionFile);
-        extension.default(exp, gulp);
-      } catch (error) {
-        console.error('[GulpEx] Failed to load extension ' + extensionFile);
-        console.error(error);
-      }
-    }
-  };
-
-  const end = function(message) {
-    console.log(message);
-    this.emit('end');
-  };
-  const err = function(error) {
-    console.error(error);
-    this.emit('end');
-  };
+  config.rootDir = rootDir;
 
   function init(done) {
     function copyPublicAssets() {
@@ -93,13 +49,13 @@ module.exports = function(exports, config) {
 
         asset = assets[asset];
         if (typeof asset === 'string') {
-          asset = {src: asset, dest: config.assetDirectory};
+          asset = { src: asset, dest: config.assetDirectory };
         } else if (typeof asset === 'object' &&
-            asset.hasOwnProperty('length')) {
+          asset.hasOwnProperty('length')) {
           if (asset.length < 2) {
             asset[1] = config.assetDirectory;
           }
-          asset = {src: asset[0], dest: asset[1]};
+          asset = { src: asset[0], dest: asset[1] };
         }
 
         if (typeof asset.src === 'undefined') {
@@ -111,13 +67,13 @@ module.exports = function(exports, config) {
         }
 
         resolver = resolver.then(
-            new Promise((resolve, reject) => {
-              gulp.src(asset.src).
-                  on('error', reject).
-                  pipe(gulp.dest(asset.dest)).
-                  on('error', reject).
-                  on('end', resolve);
-            }),
+          new Promise((resolve, reject) => {
+            gulp.src(asset.src).
+              on('error', reject).
+              pipe(gulp.dest(asset.dest)).
+              on('error', reject).
+              on('end', resolve);
+          }),
         );
       }
 
@@ -137,27 +93,27 @@ module.exports = function(exports, config) {
     return new Promise((resolve) => {
 
       bundle.path = typeof bundle.path !== 'string' ?
-          config.scriptsDir :
-          bundle.path;
+        config.scriptsDir :
+        bundle.path;
 
       bundle.minify = typeof bundle.minify === 'boolean' ?
-          bundle.minify :
-          true;
+        bundle.minify :
+        true;
 
       gulp.src(bundle.files).
-          pipe(gulpif(!deploy, sourcemap.init())).
-          on('error', err).
-          pipe(concat(bundle.name, {newLine: ';\n'})).
-          on('error', err).
-          pipe(gulpif(deploy && bundle.minify, uglify())).
-          on('error', err).
-          pipe(gulpif(deploy && bundle.minify, rename({suffix: '.min'}))).
-          on('error', end).
-          pipe(gulpif(!deploy, sourcemap.write('.'))).
-          on('error', err).
-          pipe(gulp.dest(bundle.path)).
-          on('error', err).
-          on('end', resolve);
+        pipe(gulpif(!deploy, sourcemap.init())).
+        on('error', err).
+        pipe(concat(bundle.name, { newLine: ';\n' })).
+        on('error', err).
+        pipe(gulpif(deploy && bundle.minify, uglify())).
+        on('error', err).
+        pipe(gulpif(deploy && bundle.minify, rename({ suffix: '.min' }))).
+        on('error', end).
+        pipe(gulpif(!deploy, sourcemap.write('.'))).
+        on('error', err).
+        pipe(gulp.dest(bundle.path)).
+        on('error', err).
+        on('end', resolve);
     });
   }
 
@@ -170,7 +126,7 @@ module.exports = function(exports, config) {
       bundleKey = bundleKey.trim().toLowerCase();
     }
 
-    return function(done) {
+    return function (done) {
       let promises = [];
       for (let key in config.bundles) {
         if (!config.bundles.hasOwnProperty(key)) continue;
@@ -197,37 +153,63 @@ module.exports = function(exports, config) {
   function createStyle(style, deploy) {
     return new Promise((resolve) => {
       style.path = typeof style.path !== 'string' ?
-          config.cssDirectory :
-          style.path;
+        config.cssDirectory :
+        style.path;
 
       style.minify = typeof style.minify === 'boolean' ?
-          style.minify :
-          true;
+        style.minify :
+        true;
 
-      gulp.src(style.files).
-          pipe(plumber()).
-          on('error', err).
-          pipe(gulpif(!deploy, sourcemap.init())).
-          on('error', err).
-          pipe(gulpif(deploy && style.minify, sass({
+      // gulp.src(style.files).
+      //   pipe(plumber()).
+      //   on('error', err).
+      //   pipe(gulpif(!deploy, sourcemap.init())).
+      //   on('error', err).
+      //   pipe(gulpif(deploy && style.minify, sass({
+      //     outputStyle: 'compressed',
+      //     includePaths: config.includePaths,
+      //   }))).
+      //   on('error', err).
+      //   pipe(gulpif(!deploy || !style.minify, sass({
+      //     outputStyle: 'expanded',
+      //     includePaths: config.includePaths,
+      //   }))).
+      //   on('error', err).
+      //   pipe(gulpif(deploy, postcss([autoprefixer()]))).
+      //   on('error', end).
+      //   pipe(gulpif(deploy && style.minify, rename({ suffix: '.min' }))).
+      //   on('error', end).
+      //   pipe(gulpif(!deploy, sourcemap.write('.'))).
+      //   on('error', err).
+      //   pipe(gulp.dest(style.path)).
+      //   on('error', err).
+      //   on('end', resolve);
+
+      executePipe(
+        createPipe(
+          defineTask(plumber(), err),
+          defineTask(gulpif(!deploy, sourcemap.init()), err),
+          defineTask(gulpif(deploy && style.minify, sass({
             outputStyle: 'compressed',
             includePaths: config.includePaths,
-          }))).
-          on('error', err).
-          pipe(gulpif(!deploy || !style.minify, sass({
+          })), err),
+          defineTask(gulpif(!deploy || !style.minify, sass({
             outputStyle: 'expanded',
             includePaths: config.includePaths,
-          }))).
-          on('error', err).
-          pipe(gulpif(deploy, postcss([autoprefixer()]))).
-          on('error', end).
-          pipe(gulpif(deploy && style.minify, rename({suffix: '.min'}))).
-          on('error', end).
-          pipe(gulpif(!deploy, sourcemap.write('.'))).
-          on('error', err).
-          pipe(gulp.dest(style.path)).
-          on('error', err).
-          on('end', resolve);
+          })), err),
+          defineHook('style.build.prefix.before'),
+          defineTask(gulpif(deploy, postcss([autoprefixer()])), end),
+          defineHook('style.build.prefix.after'),
+          defineHook('style.build.minify.before'),
+          defineTask(gulpif(deploy && style.minify, rename({ suffix: '.min' })), end),
+          defineHook('style.build.minify.after'),
+          defineHook('style.build.sourcemap.before'),
+          defineTask(gulpif(!deploy, sourcemap.write('.')), err),
+          defineHook('style.build.sourcemap.after'),
+          defineHook('style.build.output.before'),
+          defineTask(gulp.dest(style.path), err, resolve),
+        ), gulp.src(style.files)
+      );
     });
   }
 
@@ -240,7 +222,7 @@ module.exports = function(exports, config) {
       styleKey = styleKey.trim().toLowerCase();
     }
 
-    return function(done) {
+    return function (done) {
       let promises = [];
       for (let key in config.styles) {
         if (!config.styles.hasOwnProperty(key)) continue;
@@ -263,7 +245,7 @@ module.exports = function(exports, config) {
   }
 
   function watch() {
-    const watcherOpts = {atomic: true, usePolling: true, alwaysStat: true};
+    const watcherOpts = { atomic: true, usePolling: true, alwaysStat: true };
 
     // Initialize Stylesheet-Watchers
     for (let key in config.styles) {
@@ -288,11 +270,11 @@ module.exports = function(exports, config) {
         watchPaths.splice(0, 0, ...style.files);
 
         gulp.watch(
-            watchPaths,
-            watcherOpts,
-            gulp.parallel(
-                buildCss(false, key)
-            ),
+          watchPaths,
+          watcherOpts,
+          gulp.parallel(
+            buildCss(false, key)
+          ),
         );
       }
     }
@@ -312,41 +294,63 @@ module.exports = function(exports, config) {
 
       if (bundle.watch) {
         gulp.watch(
-            bundle.files,
-            watcherOpts,
-            gulp.parallel(
-                buildJs(false, key),
-            ),
+          bundle.files,
+          watcherOpts,
+          gulp.parallel(
+            buildJs(false, key),
+          ),
         );
       }
     }
   }
 
-// Initialization Tasks
-  exports['init'] = init;
+  // Initialization Tasks
+  register('init', init);
 
-// Converting Tasks
-  exports['convert-js'] = buildJs(false);
-  exports['convert-css'] = buildCss(false);
-  exports['convert'] = gulp.parallel(exports['convert-js'], exports['convert-css']);
+  // Converting Tasks
+  register('convert-js', annotate(buildJs(false), 'convert-js'));
+  register('convert-css', annotate(buildCss(false), 'convert-css'));
+  register('convert', gulp.parallel(lookup('convert-js'), lookup('convert-css')));
 
-// Deployment Tasks
-  const deployJs = gulp.parallel(exports['convert-js'], buildJs(true));
-  const deployCss = gulp.parallel(exports['convert-css'], buildCss(true));
-  exports['deploy-js'] = gulp.series(init, deployJs);
-  exports['deploy-css'] = gulp.series(init, deployCss);
-  exports['deploy'] = gulp.series(init, gulp.parallel(deployJs, deployCss));
+  // Deployment Tasks
+  register('deploy-js', gulp.series(lookup('init'), gulp.parallel(lookup('convert-js'), buildJs(true))));
+  register('deploy-css', gulp.series(lookup('init'), gulp.parallel(lookup('convert-css'), buildCss(true))));
+  register('deploy', gulp.series(lookup('init'), gulp.parallel(
+    gulp.parallel(lookup('convert-js'), annotate(buildJs(true), 'deploy-js')),
+    gulp.parallel(lookup('convert-css'), annotate(buildCss(true), 'deploy-css'))
+  )));
 
-// Watcher Tasks
-  exports['watch'] = gulp.series(exports['deploy'], watch);
-  exports['default'] = exports['deploy'];
+  // Watcher Tasks
+  register('watch', gulp.series(lookup('deploy'), watch));
+  register('default', lookup('deploy'));
 
-// Finish Initialisation
+  // Load Plugins
   try {
-    console.log('[GulpEx] Loading optional modules...');
-    gulpext(config, gulp, exports);
-    console.log('[GulpEx] Finished loading optional modules.');
+    const extensions = findExtensions(rootDir, config);
+    for (let extensionFile of extensions) {
+      const extensionName = String(extensionFile).replace(/autoload\//, '');
+      loadExtension(extensionFile, extensionName, rootDir, {
+        config: guardConfig(config, extensionName),
+        gulp,
+        annotate,
+        register,
+        retain,
+        lookup,
+        plugin: {
+          registerPipe,
+          createPipe,
+          defineTask,
+          defineHook: buildHookDefiner(extensionName),
+          err,
+          end
+        }
+      });
+    }
   } catch (e) {
-    console.warn('[GulpEx] Proceeding without optional modules.');
   }
+
+  // Publish Defined Tasks
+  apply(exports);
 };
+
+module.exports = main;

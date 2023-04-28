@@ -1,13 +1,14 @@
-# GulpEx 2
+# GulpEx 2.1
 This package provides an easy-to-use and highly configurable wrapper for performing the most common gulp tasks like bundling JavaScript source files and compiling SASS/SCSS to CSS.
 
 Please post bug reports and feature requests here: https://github.com/arminlinzbauer/gulpex/issues
 
 ## INDEX
 1. [INSTALLATION](#installation)
-1. [STANDARD TASKS](#standard-tasks)
+1. [BUILT-IN TASKS](#built-in-tasks)
 1. [CONFIGURATION](#configuration)
 1. [DEFAULTS AND FALLBACKS](#defaults-and-fallbacks)
+1. [EXTENSIONS](#extensions)
 1. [FULL GULPFILE EXAMPLE](#full-gulpfile-example)
 
 ## INSTALLATION
@@ -24,10 +25,10 @@ Please post bug reports and feature requests here: https://github.com/arminlinzb
     const gulpex = require("@arminlinzbauer/gulpex");
     gulpex(exports, {
         // Configuration goes here...
-    });
+    }, __dirname);
     ```
 
-## STANDARD TASKS
+## BUILT-IN TASKS
 GulpEx provides you with a couple of pre-defined tasks that can be executed by running the following command in the directory your `gulpfile.js` is in:
 ```sh
 gulp <task-name>
@@ -124,7 +125,7 @@ Assets can be specified in two ways (both of which support glob patterns):
 Source files will be copied to a pre-defined location within your project's public document root.
 Without further configuration, this location will default to `./html/assets`.
 
-**As an objekt**\
+**As an object**\
 Source files will be copied from `object.src` to `object.dest`. If `object.dest` is omitted, files will again be copied to the pre-defined asset location.
 
 ## DEFAULTS AND FALLBACKS
@@ -138,8 +139,12 @@ The following config properties (with their corresponding default values) can be
  - `cssDirectory` : `'./html/css'`
  - `scriptsDir` : `'./html/js'`
 
+## EXTENSIONS
+
+Coming soon. Try your luck with the example plugin located at @arminlinzbauer/gulpex/.gulp/extensions/example-extension.js
+
 ## FULL GULPFILE EXAMPLE
-Tying together what we've leared, a possible gulpfile configuration could look something like this:
+Tying together what we've learned, a possible gulpfile configuration could look something like this:
 
 ```node
 const gulpex = require('@arminlinzbauer/gulpex');
@@ -167,8 +172,11 @@ gulpex(exports, {
             name: 'scripts.bundle.js',
             minify: true,
             files: [ './js/**/*.js' ],
-        }
+        },
+        extensions: [
+            'example-extension'
+        ]
     }
-});
+}, __dirname);
 
 ```
