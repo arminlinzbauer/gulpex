@@ -1,6 +1,6 @@
 {
   "name": "@arminlinzbauer/gulpex",
-  "version": "2.1.2-rc.1",
+  "version": "2.1.2-rc.2",
   "description": "Extensible Gulp Wrapper for Easy Set-up and Project Integration (SASS + JS)",
   "keywords": [
     "gulp",
@@ -17,7 +17,7 @@
   "license": "MIT",
   "author": "Armin Linzbauer",
   "engines": {
-    "node": ">=18.16.0"
+    "node": ">=16.0.0"
   },
   "repository": {
     "type": "git",
